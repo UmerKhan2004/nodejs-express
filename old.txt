@@ -1,0 +1,241 @@
+
+//file reading
+// const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
+// const users = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/users.json`));
+
+
+
+//Route handlers - tours
+// const createTour =  (req, res) => {
+//     const newID = tours[tours.length - 1].id + 1; 
+//     const newTour = Object.assign({ id: newID }, req.body);
+
+//     tours.push(newTour);
+
+//     fs.writeFile(
+//         `${__dirname}/dev-data/data/tours-simple.json`, 
+//         JSON.stringify(tours),
+//         (err) => {
+//             res.status(201).json({
+//                 status: 'success', 
+//                 data: {
+//                     tour: newTour
+//                 }
+//             });
+//         }
+//     );
+// };
+
+
+
+// const getTour = (req,res) => {
+
+//     if(req.params.id  > tours.length){
+//         return res.status(404).json({
+//             status: "fail",
+//             message : "Invalid Id"
+//         })
+//     };
+
+//     const id = req.params.id * 1;
+//     const tour = tours.find(el => el.id === id);
+
+//     console.log(req.params);
+//     res.status(200).json({
+//     status : 'success',
+//     data : {
+//         tour
+//     }
+    
+//  });
+// };
+
+
+
+// const updateTour = (req, res) => {
+//     const id = req.params.id * 1;
+
+//     if (id > tours.length) {
+//         return res.status(404).json({
+//             status: 'fail',
+//             message: 'Invalid ID'
+//         });
+//     }
+
+//     const tour = tours.find(el => el.id === id);
+
+//     if (!tour) {
+//         return res.status(404).json({
+//             status: 'fail',
+//             message: 'Invalid ID'
+//         });
+//     }
+
+    
+//     tour.duration = 15;
+
+//     fs.writeFile(
+//         `${__dirname}/dev-data/data/tours-simple.json`,
+//         JSON.stringify(tours),
+//         (err) => {
+//             if (err) {
+//                 return res.status(500).json({
+//                     status: 'error',
+//                     message: 'Could not update the tour'
+//                 });
+//             }
+
+//             res.status(200).json({
+//                 status: 'success',
+//                 data: {
+//                     tour
+//                 }
+//             });
+//         }
+//     );
+// };
+
+
+// const getAllTours = (req,res) => {
+
+//  res.status(200).json({
+//     status : 'success',
+//     result : tours.length,
+//     Time : req.requestTime,
+//     data :{
+//         tours : tours
+//     }
+//  });
+// };
+
+//route Handlers - users
+
+// const getAllUsers = (req, res) => {
+//     res.status(200).json({
+//         status : 'success',
+//         result : users.length,
+//         time   : req.requestTime,
+//         data : {
+//             users : users
+//         }
+        
+//     });
+// };
+
+// const getUser = (req, res) => {
+//     const id = req.params.id ;
+
+//     const user = users.find(el => el._id === id);
+
+//     if (!user) {
+//         return res.status(404).json({
+//             status: 'fail',
+//             message: 'Invalidhh Id'
+//         });
+//     }
+
+//     res.status(200).json({
+//         status: 'success',
+//         data: {
+//             user
+//         }
+//     });
+// };
+
+
+// const createUser = (req, res) => {
+//     const newID = Date.now().toString(); // simple unique id generator (see note below)
+//     const newUser = Object.assign({ _id: newID }, req.body);
+
+//     users.push(newUser);
+
+//     fs.writeFile(
+//         `${__dirname}/dev-data/data/users.json`,
+//         JSON.stringify(users, null, 2),
+//         (err) => {
+//             if (err) {
+//                 return res.status(500).json({
+//                     status: 'error',
+//                     message: 'Could not save the user'
+//                 });
+//             }
+
+//             res.status(201).json({
+//                 status: 'success',
+//                 data: {
+//                     user: newUser
+//                 }
+//             });
+//         }
+//     );
+// };
+
+// const updateUser = (req, res) => {
+//     const user = users.find(el => el._id === req.params.id);
+
+//     if (!user) {
+//         return res.status(404).json({
+//             status: 'fail',
+//             message: 'Invalid ID'
+//         });
+//     }
+
+//     Object.assign(user, req.body); // merge in whatever fields the client sends
+
+//     fs.writeFile(
+//         `${__dirname}/dev-data/data/users.json`,
+//         JSON.stringify(users, null, 2),
+//         (err) => {
+//             if (err) {
+//                 return res.status(500).json({
+//                     status: 'error',
+//                     message: 'Could not update the user'
+//                 });
+//             }
+
+//             res.status(200).json({
+//                 status: 'success',
+//                 data: {
+//                     user
+//                 }
+//             });
+//         }
+//     );
+// };
+
+
+// app.get('/api/v1/tours/' , getAllTours);
+// app.post('/api/v1/tours', createTour);
+// app.patch('/api/v1/tours/:id', updateTour );
+// app.get('/api/v1/tours/:id' , getTour);
+
+
+
+//Routes
+
+//route middleware
+
+
+// const tourRouter = express.Router();
+// const userRouter = express.Router();
+
+
+// tourRouter
+//     .route('/')
+//     .get(getAllTours)
+//     .post(createTour);
+
+// tourRouter 
+//     .route('/:id')
+//     .get(getTour)
+//     .patch(updateTour);
+
+// userRouter
+//     .route('/')
+//     .get(getAllUsers)
+//     .post(createUser);
+
+// userRouter
+//     .route('/:id')
+//     .get(getUser)
+//     .patch(updateUser);
