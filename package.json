@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mongoose": "^5.13.23",
     "morgan": "^1.11.0",
     "slugify": "^1.6.9",
     "superagent": "^10.3.0"
