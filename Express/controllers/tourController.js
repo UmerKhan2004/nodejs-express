@@ -26,7 +26,27 @@ exports.getAllTours = async (req, res) => {
             // Default sorting
             query = query.sort('-createdAt');
         }
+
+        //5)
+        if(req.query.fields){
+            const feilds = req.query.fields.split(',').join(' ');
+            query = query.select(feilds);
+        }else{
+            query = query.select('-__v');
+        }
         
+        // 6)
+        const page = req.query.page * 1 || 1;
+        const limit = req.query.limit *1 || 100;
+        const skip = (page -1) * limit;
+
+        query = query.skip(skip).limit(limit);
+        if (req.query.page) {
+         const numTours = await Tour.countDocuments();
+        if (skip >= numTours) {
+        throw new Error('This page does not exist');
+        }
+        }
 
         // 5) EXECUTE QUERY
         const tours = await query;
