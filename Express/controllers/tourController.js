@@ -1,5 +1,26 @@
 const Tour = require('./../models/tourModel');
 
+// 7) ALIASING
+// exports.AliasTopTour = (req, res, next) => {
+//     req.query.limit = '5';
+//     req.query.sort = '-ratingsAverage,price';
+//     req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+
+//     console.log(req.query.limit);
+//     console.log(req.query.sort);
+//     console.log(req.query.fields);
+
+//     next();
+// };
+// exports.AliasTopTour = (req, res, next) => {
+//     req.url =
+//         '/?limit=5&sort=-ratingsAverage,price&fields=name,price,ratingsAverage,summary,difficulty';
+        
+//     next();
+// };
+
+
+
 exports.getAllTours = async (req, res) => {
     try {
         // 1) BUILD QUERY
@@ -27,7 +48,7 @@ exports.getAllTours = async (req, res) => {
             query = query.sort('-createdAt');
         }
 
-        //5)
+        //5) LIMITED FIELDS
         if(req.query.fields){
             const feilds = req.query.fields.split(',').join(' ');
             query = query.select(feilds);
@@ -35,7 +56,7 @@ exports.getAllTours = async (req, res) => {
             query = query.select('-__v');
         }
         
-        // 6)
+        // 6)PAGINATION
         const page = req.query.page * 1 || 1;
         const limit = req.query.limit *1 || 100;
         const skip = (page -1) * limit;
@@ -44,11 +65,10 @@ exports.getAllTours = async (req, res) => {
         if (req.query.page) {
          const numTours = await Tour.countDocuments();
         if (skip >= numTours) {
-        throw new Error('This page does not exist');
-        }
-        }
+            throw new Error('This page does not exist');
+        }}
 
-        // 5) EXECUTE QUERY
+        // 8) EXECUTE QUERY
         const tours = await query;
 
         res.status(200).json({
