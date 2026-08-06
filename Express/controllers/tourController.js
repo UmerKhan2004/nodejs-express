@@ -1,4 +1,5 @@
 const Tour = require('./../models/tourModel');
+const APIFeatures = require('./../utils/apiFeatures');
 
 // 7) ALIASING
 // exports.AliasTopTour = (req, res, next) => {
@@ -20,56 +21,16 @@ const Tour = require('./../models/tourModel');
 // };
 
 
-
 exports.getAllTours = async (req, res) => {
     try {
-        // 1) BUILD QUERY
-        const queryObj = { ...req.query };
-        const excludedFields = ['page', 'sort', 'limit', 'fields'];
-        excludedFields.forEach(el => delete queryObj[el]);
-
-        // 2) ADVANCED QUERY FILTERING
-        let queryStr = JSON.stringify(queryObj);
-        queryStr = queryStr.replace(
-            /\b(gte|gt|lte|lt)\b/g,
-            match => `$${match}`
-        );
-
-        // 3) CREATE QUERY
-        let query = Tour.find(JSON.parse(queryStr));
-
-        // 4) SORTING
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ');
-            query = query.sort(sortBy);
-            console.log(sortBy); 
-        } else {
-            // Default sorting
-            query = query.sort('-createdAt');
-        }
-
-        //5) LIMITED FIELDS
-        if(req.query.fields){
-            const feilds = req.query.fields.split(',').join(' ');
-            query = query.select(feilds);
-        }else{
-            query = query.select('-__v');
-        }
-        
-        // 6)PAGINATION
-        const page = req.query.page * 1 || 1;
-        const limit = req.query.limit *1 || 100;
-        const skip = (page -1) * limit;
-
-        query = query.skip(skip).limit(limit);
-        if (req.query.page) {
-         const numTours = await Tour.countDocuments();
-        if (skip >= numTours) {
-            throw new Error('This page does not exist');
-        }}
+        const Features = new APIFeatures(Tour.find(),req.query)
+        .filter()
+        .sort()
+        .limitFields()
+        .paginate();
 
         // 8) EXECUTE QUERY
-        const tours = await query;
+        const tours = await Features.query;
 
         res.status(200).json({
             status: 'success',
