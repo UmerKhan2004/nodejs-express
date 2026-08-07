@@ -65,14 +65,15 @@ exports.getTourStats = async (req, res) => {
 
 exports.getAllTours = async (req, res) => {
     try {
-        const Features = new APIFeatures(Tour.find(),req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate();
+        const features = new APIFeatures(Tour.find(), req.query)
+            .filter()
+            .sort()
+            .limitFields();
 
-        // 8) EXECUTE QUERY
-        const tours = await Features.query;
+        await features.paginate();
+
+        // EXECUTE QUERY
+        const tours = await features.query;
 
         res.status(200).json({
             status: 'success',
@@ -157,6 +158,56 @@ exports.deleteTour = async (req, res) => {
         res.status(400).json({
             status: 'fail',
             message: err
+        });
+    }
+};
+
+exports.getMonthlyPlan = async (req,res) => {
+    try{
+        const year = req.params.year * 1;
+        
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates'
+            },
+            {
+                $match: {
+                    startDates : {
+                        $gte : new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $group : {
+                    _id :  {$month: '$startDates'},
+                    numTourStarts : {$sum : 1},
+                    tours:{$push : '$name'}
+                }
+            },
+            {
+                 $addFields: { month: '$_id' }
+            },
+            {
+                $project: {
+                    _id: 0
+                }
+            },
+            {
+                $sort: { numTourStarts: -1 }
+            }
+        ]);
+        
+        res.status(200).json({
+            status: 'success',
+            data: {
+                plan
+            }
+        });
+    }catch(err) {
+        res.status(400).json({
+            status : 'fail',
+            message : err.message
         });
     }
 };
