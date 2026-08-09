@@ -64,6 +64,7 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
+      // CUSTOM VALIDATOR
       validate: {
         validator: function(val) {
           // this only points to current doc on NEW document creation
@@ -116,6 +117,15 @@ tourSchema.pre('save', function (next) {
 tourSchema.pre(/^find/, function(next){
     this.find({secretTour : {$ne : true}});
   next();
+});
+
+tourSchema.pre('aggregate', function(next) {
+    this.pipeline().unshift({
+        $match: {
+            secretTour: { $ne: true }
+        }
+    });  
+    next();
 });
 
 const Tour = mongoose.model('Tour' , tourSchema);
