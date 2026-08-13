@@ -1,26 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
 
-
-// const tourSchema = new mongoose.Schema({
-//     name : {
-//         type :String,
-//         required :  [true , 'A tour must have name'],
-//         unique : true
-//     },
-//     duration: {
-//         type
-//     },
-//     rating: {
-//         type : Number,
-//         default:4.5
-//     },
-//     price:{
-//         type : Number,
-//         required:  [true , 'A tour must have price']
-//     }
-// });
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -28,9 +8,9 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
-      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
-      minlength: [10, 'A tour name must have more or equal then 10 characters'],
-      //validate: [validator.isAlpha, 'Tour name must only contain letters']
+      maxlength: [40, 'A tour name must have less or equal than 40 characters'],
+      minlength: [10, 'A tour name must have more or equal than 10 characters']
+      // validate: [validator.isAlpha, 'Tour name must only contain letters']
     },
     slug: String,
     duration: {
@@ -47,13 +27,14 @@ const tourSchema = new mongoose.Schema(
       enum: {
         values: ['easy', 'medium', 'difficult'],
         message: 'Difficulty is either: easy, medium, difficult'
-      }  
+      }
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
-      max: [5, 'Rating must be below 5.0']
+      max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10 // 4.6666 -> 4.7
     },
     ratingsQuantity: {
       type: Number,
@@ -65,10 +46,9 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
-      // CUSTOM VALIDATOR
       validate: {
-        validator: function(val) {
-          // this only points to current doc on NEW document creation
+        // 'this' only points to current doc on NEW document creation
+        validator: function (val) {
           return val < this.price;
         },
         message: 'Discount price ({VALUE}) should be below regular price'
@@ -90,7 +70,7 @@ const tourSchema = new mongoose.Schema(
     images: [String],
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now, // was Date.now() — evaluated once at schema load instead of per-doc
       select: false
     },
     startDates: [Date],
@@ -102,41 +82,36 @@ const tourSchema = new mongoose.Schema(
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
-  });
+  }
+);
 
+// INDEXES — speeds up common filter/sort queries
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
+// VIRTUAL PROPERTIES
 tourSchema.virtual('durationWeeks').get(function () {
-    return this.duration / 7;
+  return this.duration / 7;
 });
 
-//MONGOOSE MIDDLEWARE
+// DOCUMENT MIDDLEWARE — runs before .save() and .create()
 tourSchema.pre('save', function (next) {
-    this.slug = slugify(this.name, { lower: true });
-    console.log("Mongoose middleware");
-    next();
-});
-
-tourSchema.pre(/^find/, function(next){
-    this.find({secretTour : {$ne : true}});
+  this.slug = slugify(this.name, { lower: true });
   next();
 });
 
-tourSchema.pre('aggregate', function(next) {
-    this.pipeline().unshift({
-        $match: {
-            secretTour: { $ne: true }
-        }
-    });  
-    next();
+// QUERY MIDDLEWARE — excludes secret tours from all find-type queries
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
+  next();
 });
 
-const Tour = mongoose.model('Tour' , tourSchema);
+// AGGREGATION MIDDLEWARE — excludes secret tours from aggregation pipelines
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
+});
 
-
-
-
-
-
-
-
+const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;
