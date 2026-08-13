@@ -2,7 +2,6 @@ const fs = require('fs');
 
 const users = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/users.json`));
 
-
 exports.getAllUsers = (req, res) => {
     res.status(200).json({
         status : 'success',
@@ -10,8 +9,7 @@ exports.getAllUsers = (req, res) => {
         time   : req.requestTime,
         data : {
             users : users
-        }
-        
+        } 
     });
 };
 
@@ -22,7 +20,7 @@ exports.getUser = (req, res) => {
     if (!user) {
         return res.status(404).json({
             status: 'fail',
-            message: 'Invalidhh Id'
+            message: 'Invalid Id'
         });
     }
 
@@ -42,7 +40,7 @@ exports.createUser = (req, res) => {
     users.push(newUser);
 
     fs.writeFile(
-        `${__dirname}/dev-data/data/users.json`,
+        `${__dirname}/../dev-data/data/users.json`,
         JSON.stringify(users, null, 2),
         (err) => {
             if (err) {
@@ -75,7 +73,7 @@ exports.updateUser = (req, res) => {
     Object.assign(user, req.body); // merge in whatever fields the client sends
 
     fs.writeFile(
-        `${__dirname}/dev-data/data/users.json`,
+        `${__dirname}/../dev-data/data/users.json`,
         JSON.stringify(users, null, 2),
         (err) => {
             if (err) {
