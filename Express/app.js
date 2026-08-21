@@ -1,8 +1,11 @@
 const express = require('express');
+const app = express();
+
 const morgan = require('morgan');
+
 const AppError = require('./utils/AppError.js');
 const gloabalErrorHandler = require('./controllers/errorController');
-const app = express();
+
 
 // MIDDLEWARES
 app.use(express.json());
