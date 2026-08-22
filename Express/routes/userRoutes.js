@@ -1,15 +1,15 @@
 const express= require('express');
 const userController = require('./../controllers/userController.js');
-
-
+const authController = require('./../controllers/authController.js');
 
 
 const router = express.Router();
+// router.param('id', (req,res,next,value) => {
+//     console.log(`Tour id is :  ${value}`);
+//     next();
+// });
 
-router.param('id', (req,res,next,value) => {
-    console.log(`Tour id is :  ${value}`);
-    next();
-});
+router.post('/signup' , authController.signup);
 
 router
     .route('/')
