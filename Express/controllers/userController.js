@@ -1,28 +1,24 @@
 const User = require('./../models/userModel');
-const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/AppError');
 
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+    const users = await User.find();
 
-exports.getAllUsers = catchAsync(async (req, res , next) => {
-    const user = await User.find();
     res.status(200).json({
-        status : 'success',
-        data : {
-            user : user
-        } 
+        status: 'success',
+        results: users.length,
+        data: {
+            users
+        }
     });
 });
 
-exports.getUser = (req, res) => {
-    const id = req.params.id ;
-    const user = users.find(el => el._id === id);
+exports.getUser = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
 
     if (!user) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid Id'
-        });
+        return next(new AppError('No user found with that ID', 404));
     }
 
     res.status(200).json({
@@ -31,65 +27,29 @@ exports.getUser = (req, res) => {
             user
         }
     });
-};
-
+});
 
 exports.createUser = (req, res) => {
-    const newID = Date.now().toString(); // simple unique id generator (see note below)
-    const newUser = Object.assign({ _id: newID }, req.body);
-
-    users.push(newUser);
-
-    fs.writeFile(
-        `${__dirname}/../dev-data/data/users.json`,
-        JSON.stringify(users, null, 2),
-        (err) => {
-            if (err) {
-                return res.status(500).json({
-                    status: 'error',
-                    message: 'Could not save the user'
-                });
-            }
-
-            res.status(201).json({
-                status: 'success',
-                data: {
-                    user: newUser
-                }
-            });
-        }
-    );
+    res.status(500).json({
+        status: 'error',
+        message: 'This route is not defined! Please use /signup instead'
+    });
 };
 
-exports.updateUser = (req, res) => {
-    const user = users.find(el => el._id === req.params.id);
+exports.updateUser = catchAsync(async (req, res, next) => {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    });
 
     if (!user) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID'
-        });
+        return next(new AppError('No user found with that ID', 404));
     }
 
-    Object.assign(user, req.body); // merge in whatever fields the client sends
-
-    fs.writeFile(
-        `${__dirname}/../dev-data/data/users.json`,
-        JSON.stringify(users, null, 2),
-        (err) => {
-            if (err) {
-                return res.status(500).json({
-                    status: 'error',
-                    message: 'Could not update the user'
-                });
-            }
-
-           res.status(200).json({
-                status: 'success',
-                data: {
-                    user
-                }
-            });
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
         }
-    );
-};
+    });
+});
