@@ -27,7 +27,7 @@ exports.signup = catchAsync(async (req , res) => {
     });
 });
 
-exports.login = (req,res,next) => {
+exports.login = catchAsync(async(req,res,next) => {
     const {email , password} = req.body;
 
     // 1) if email and password exist
@@ -36,14 +36,18 @@ exports.login = (req,res,next) => {
 
 
     //2) if the user exist , if password correct
-    const user = User.findOne({email});
+    const user = await User.findOne({email}).select('+password');
+
+    if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError("Incorrect email or password", 401));
+}
 
     //3) send webtoken
-    const token = 'l'
+    const token = signToken(user._id)
     res.status(200).json({
-        status : 'success',
+        status : 'User login',
         token
     });
 
-}
+});
 
