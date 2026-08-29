@@ -33,13 +33,12 @@ const userSchema = new mongoose.Schema({
     }
   },
   passwordChangedAt : Date,
-  role : {
-    type : String,
-    enum : ['user' , 'admin' , 'guide' , 'leasd-guide'],
-    
-  },
-  PasswordResetToken: String,
-  passwordResetExpires : Date
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'guide', 'lead-guide'],
+},
+passwordResetToken: String,
+passwordResetExpires: Date
 });
 
 userSchema.pre('save', async function(next) {
@@ -65,18 +64,20 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-userSchema.methods.createPasswordResetToken = function (){
-  const resetToken = crypto.randomBytes(32).toString('hex');
+userSchema.methods.createPasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
- this.PasswordResetToken =  crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.passwordResetToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
 
- console.log({ resetToken }, this.passwordResetToken);
- 
- this.passwordResetExpires = Date.now() + 10 * 60 *1000;
+    console.log({ resetToken }, this.passwordResetToken);
 
- return resetToken;
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
-}
+    return resetToken;
+};
 
 const User = mongoose.model('User', userSchema);
 
