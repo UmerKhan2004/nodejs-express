@@ -3,14 +3,14 @@ const { promisify } = require('util');
 const catchAsync = require('../utils/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('../utils/AppError');
-const email = require('./../controllers/email');
+const sendEmail = require('./../controllers/email');
 
 
 const signToken= id => {
     return jwt.sign({id}, process.env.JWT_SECRET, {
         expiresIn:process.env.JWT_EXPIRES_IN
     })
-}
+}; 
 
 exports.signup = catchAsync(async (req , res) => {
     const newUser = await User.create({
@@ -140,6 +140,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.resetPassword = catchAsync( async (req,res,next) => {
+exports.resetPassword = catchAsync(async (req, res, next) => {
+    // 1)Get user Based on token
 
+    // 2)if token has not expired , and their is user , set the new password
+
+    //3 ) Update change PasswordAt property for the user
+
+    //4) log the user in
 });
