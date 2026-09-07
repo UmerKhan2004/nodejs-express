@@ -143,30 +143,34 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-    // 1)Get user Based on token
-    const hashedToken = crypto.createHash('sha256').update(req.param.token).digest('hex');
+    // 1) Get user based on token
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(req.params.token)
+        .digest('hex');
 
-    const user = await User.findOne({passwordResetToken : hashedToken , passwordResetExpires : {$gt: Date.now()}});
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() }
+    });
 
-    // 2)if token has not expired , and their is user , set the new password
-    if(!user){
-        next(new AppError("Token is invalid or has expired", 400));
+    // 2) If token has not expired, and there is a user, set the new password
+    if (!user) {
+        return next(new AppError('Token is invalid or has expired', 400));
     }
 
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
     user.passwordResetToken = undefined;
-    use.passwordResetExpires = undefined;
-    await user.save();
-    
-    //3 ) Update change PasswordAt property for the user
-    
+    user.passwordResetExpires = undefined;
+    user.passwordChangedAt = Date.now();   // set BEFORE save
 
-    //4) log the user in
-    const token = signToken(user._id)
+    await user.save();
+
+    // 3) Log the user in
+    const token = signToken(user._id);
     res.status(200).json({
-        status : 'User login',
+        status: 'success',
         token
     });
-
 });
