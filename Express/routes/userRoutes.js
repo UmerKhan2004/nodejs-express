@@ -8,6 +8,9 @@ const router = express.Router();
 //     console.log(`Tour id is :  ${value}`);
 //     next();
 // });
+router
+    .route('UpdatePassword')
+    .patch(authController.protect , authController.updatePassword); 
 
 router.post('/signup' , authController.signup);
 router.post('/login', authController.login);
