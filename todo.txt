@@ -1,0 +1,14 @@
+1)  user flow diagrams update
+Add user flows diagram under System Architecture Heading
+
+2) Add methodology diagram in proposal 
+
+3) update Architecture diagram as of now its 
+look like AI generated(also Replace Stripe with Safepay;
+ remove claude LLM API )
+
+4 ) Remove stripe from Ganntt chart
+
+5 ) check this out and @Umer Khan whenever 
+you done with the flow diagrams add them 
+in last two slides

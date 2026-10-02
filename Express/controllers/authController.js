@@ -175,6 +175,31 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.updatePassword = catchAsync( (req,res,next) => {
+exports.updatePassword = catchAsync(async (req,res,next) => {
+    // 1) Get user with password
+        const user = await User.findById(req.user.id).select('+password');
     
+    // 2) check current password
+     const correct = User.correctPassword(req.body.currentPassword , user.password);
+
+     if(!correct){
+        return next(new AppError("Your current Password is wrong",401));
+     }
+
+     //3) password Confirm
+     if (req.body.password !== req.body.passwordConfirm) {
+    return next(new AppError("Passwords are not the same", 400));
+    }
+
+     //3) update password
+     user.password = req.body.password;
+     user.passwordConfirm = req.body.passwordConfirm;
+
+     await user.save();
+
+    const token = signToken(user._id)
+    res.status(200).json({
+        status : 'User login',
+        token
+    });
 });
