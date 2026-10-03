@@ -6,9 +6,12 @@ const morgan = require('morgan');
 const AppError = require('./utils/AppError.js');
 const gloabalErrorHandler = require('./controllers/errorController');
 
+const cookieParser = require('cookie-parser');
+
 
 // MIDDLEWARES
 app.use(express.json());
+app.use(cookieParser());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

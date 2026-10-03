@@ -15,7 +15,7 @@ const filterObj = (obj, ...allowedFields) => {
         if (allowedFields.includes(el)) {
             newObj[el] = obj[el];
         }
-    });
+    }); 
 
     return newObj;
 };
@@ -25,6 +25,33 @@ const signToken= id => {
         expiresIn:process.env.JWT_EXPIRES_IN
     })
 }; 
+
+const createSendToken = (user, statusCode, res) => {
+    const token = signToken(user._id);
+
+    const cookieOptions = {
+        expires: new Date(
+            Date.now() +
+            process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+        ),
+        httpOnly: true
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+        cookieOptions.secure = true;
+    }
+
+    res.cookie('jwt', token, cookieOptions);
+    user.password = undefined;
+
+    res.status(statusCode).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+};
+
 
 exports.signup = catchAsync(async (req , res) => {
     const newUser = await User.create({
@@ -36,13 +63,7 @@ exports.signup = catchAsync(async (req , res) => {
     role : req.body.role
 });
 
-    const token = signToken(newUser._id);
-    
-    res.status(200).json({
-        status: "success",
-        token,
-        data : newUser
-    });
+    createSendToken(newUser,200,res);
 });
 
 exports.login = catchAsync(async(req,res,next) => {
@@ -61,12 +82,12 @@ exports.login = catchAsync(async(req,res,next) => {
 }
 
     //3) send webtoken
-    const token = signToken(user._id)
-    res.status(200).json({
-        status : 'User login',
-        token
-    });
-
+    // const token = signToken(user._id)
+    // res.status(200).json({
+    //     status : 'User login',
+    //     token
+    // });
+    createSendToken(user, 200,res)
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -75,7 +96,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
-        
+    }else if (req.cookies.jwt) {
+        token = req.cookies.jwt;
     }
 
 
@@ -180,11 +202,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     await user.save();
 
     // 3) Log the user in
-    const token = signToken(user._id);
-    res.status(200).json({
-        status: 'success',
-        token
-    });
+    createSendToken(user,200,res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -214,12 +232,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     await user.save();
 
     // 4) Log user in, send new JWT
-    const token = signToken(user._id);
-
-    res.status(200).json({
-        status: 'success',
-        token
-    });
+    createSendToken(user,200,res);
 });
 
 exports.updateMe = catchAsync(async (req,res,next) => {
