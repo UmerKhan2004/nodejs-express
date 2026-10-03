@@ -8,6 +8,18 @@ const sendEmail = require('./../controllers/email');
 const { token } = require('morgan');
 
 
+const filterObj = (obj, ...allowedFields) => {
+    const newObj = {};
+
+    Object.keys(obj).forEach(el => {
+        if (allowedFields.includes(el)) {
+            newObj[el] = obj[el];
+        }
+    });
+
+    return newObj;
+};
+
 const signToken= id => {
     return jwt.sign({id}, process.env.JWT_SECRET, {
         expiresIn:process.env.JWT_EXPIRES_IN
@@ -175,31 +187,62 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     });
 });
 
-exports.updatePassword = catchAsync(async (req,res,next) => {
-    // 1) Get user with password
-        const user = await User.findById(req.user.id).select('+password');
-    
-    // 2) check current password
-     const correct = User.correctPassword(req.body.currentPassword , user.password);
+exports.updatePassword = catchAsync(async (req, res, next) => {
+    const { passwordCurrent, password, passwordConfirm } = req.body;
 
-     if(!correct){
-        return next(new AppError("Your current Password is wrong",401));
-     }
-
-     //3) password Confirm
-     if (req.body.password !== req.body.passwordConfirm) {
-    return next(new AppError("Passwords are not the same", 400));
+    // 0) Make sure all fields were sent
+    if (!passwordCurrent || !password || !passwordConfirm) {
+        return next(
+            new AppError(
+                'Please provide passwordCurrent, password and passwordConfirm',
+                400
+            )
+        );
     }
 
-     //3) update password
-     user.password = req.body.password;
-     user.passwordConfirm = req.body.passwordConfirm;
+    // 1) Get user from collection (with password)
+    const user = await User.findById(req.user.id).select('+password');
 
-     await user.save();
+    // 2) Check if the current password is correct
+    if (!(await user.correctPassword(passwordCurrent, user.password))) {
+        return next(new AppError('Your current password is wrong', 401));
+    }
 
-    const token = signToken(user._id)
+    // 3) Update password (validators + pre-save hooks handle confirm check and hashing)
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
+    await user.save();
+
+    // 4) Log user in, send new JWT
+    const token = signToken(user._id);
+
     res.status(200).json({
-        status : 'User login',
+        status: 'success',
         token
     });
+});
+
+exports.updateMe = catchAsync(async (req,res,next) => {
+    //1 ) check dont have password
+    if(req.body.password || req.body.passwordConfirm) {
+        return next(new AppError("THis route is not for password",401));
+    }
+
+    //2) filter out unwanted fields
+    const filteredBody = filterObj(req.body,"name" ,"email");
+
+    const updateUser = await User.findByIdAndUpdate(
+        req.user.id,
+        filteredBody,
+        {
+            new : true,
+            runValidators : true
+        }
+    );
+    res.status(200).json({
+        status : "success",
+        data : {
+            user : updateUser
+        }
+    })
 });
