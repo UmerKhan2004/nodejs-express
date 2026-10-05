@@ -10,10 +10,12 @@ const cookieParser = require('cookie-parser');
 
 const  rateLimit = require('express-rate-limit');
 
+const helmet = require('helmet');
+
 
 
 // GLOBAL  MIDDLEWARES
-app.use(express.json());
+app.use(express.json({limit : '10kb'}));
 app.use(cookieParser());
 
 if (process.env.NODE_ENV === 'development') {
@@ -28,14 +30,17 @@ const limiter = rateLimit({
   windowsMs : 60 * 60 * 1000,
   message : "Too many requests from this ip, try again later"
 });
+app.use('/api' , limiter);
 
+//HTTPS SECURITY HEADERs
+app.use(helmet());
 
 
 // ROUTES
 const userRouter = require('./routes/userRoutes.js');
 const tourRouter = require('./routes/tourRoutes.js');
 
-app.use('/api' , limiter);
+
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);

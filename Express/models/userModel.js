@@ -85,7 +85,7 @@ userSchema.methods.createPasswordResetToken = function () {
 };
 
 userSchema.pre(/^find/  , function(next){
-  this.find({active : true});
+  this.find({active : {$ne : false}});
   next();
 })
 
