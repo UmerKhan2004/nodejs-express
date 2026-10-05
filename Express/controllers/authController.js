@@ -6,6 +6,7 @@ const User = require('./../models/userModel');
 const AppError = require('../utils/AppError');
 const sendEmail = require('./../controllers/email');
 const { token } = require('morgan');
+const { default: rateLimit } = require('express-rate-limit');
 
 
 const filterObj = (obj, ...allowedFields) => {
@@ -48,9 +49,11 @@ const createSendToken = (user, statusCode, res) => {
         status: 'success',
         data: {
             user
-        }
+        },
+        token : token
     });
 };
+
 
 
 exports.signup = catchAsync(async (req , res) => {
@@ -75,7 +78,10 @@ exports.login = catchAsync(async(req,res,next) => {
 
 
     //2) if the user exist , if password correct
-    const user = await User.findOne({email}).select('+password');
+    const user = await User.findOne({
+    email,
+    active: { $ne: false }
+     }).select('+password');
 
     if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
@@ -110,11 +116,11 @@ exports.protect = catchAsync(async (req, res, next) => {
 
     // 3) Check if user still exists
     const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
-        return next(
-            new AppError('The user belonging to this token no longer exists.', 401)
-        );
-    }
+    if (!currentUser || currentUser.active === false) {
+      return next(
+        new AppError('This account has been deactivated.', 401)
+    );
+}
     // 4) Check if user changed password after the token was issued
      if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
@@ -258,4 +264,15 @@ exports.updateMe = catchAsync(async (req,res,next) => {
             user : updateUser
         }
     })
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+    await User.findByIdAndUpdate(req.user.id, {
+        active: false
+    });
+
+    res.status(200).json({
+        status: 'success',
+        data: null
+    });
 });

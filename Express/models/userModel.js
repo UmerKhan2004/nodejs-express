@@ -38,7 +38,12 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin', 'guide', 'lead-guide'],
 },
 passwordResetToken: String,
-passwordResetExpires: Date
+passwordResetExpires: Date,
+active: {
+    type: Boolean,
+    default: true,
+    select: false
+}
 });
 
 userSchema.pre('save', async function(next) {
@@ -78,6 +83,11 @@ userSchema.methods.createPasswordResetToken = function () {
 
     return resetToken;
 };
+
+userSchema.pre(/^find/  , function(next){
+  this.find({active : true});
+  next();
+})
 
 const User = mongoose.model('User', userSchema);
 

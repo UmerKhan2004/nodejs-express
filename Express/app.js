@@ -8,8 +8,11 @@ const gloabalErrorHandler = require('./controllers/errorController');
 
 const cookieParser = require('cookie-parser');
 
+const  rateLimit = require('express-rate-limit');
 
-// MIDDLEWARES
+
+
+// GLOBAL  MIDDLEWARES
 app.use(express.json());
 app.use(cookieParser());
 
@@ -20,9 +23,19 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(express.static(`${__dirname}/public`));
 
+const limiter = rateLimit({
+  max : 100,
+  windowsMs : 60 * 60 * 1000,
+  message : "Too many requests from this ip, try again later"
+});
+
+
+
 // ROUTES
 const userRouter = require('./routes/userRoutes.js');
 const tourRouter = require('./routes/tourRoutes.js');
+
+app.use('/api' , limiter);
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
