@@ -12,6 +12,13 @@ const  rateLimit = require('express-rate-limit');
 
 const helmet = require('helmet');
 
+const mongoSanitize = require('express-mongo-sanitize');
+
+const xss = require('xss-clean');
+
+const hpp = require('hpp');
+
+
 
 
 // GLOBAL  MIDDLEWARES
@@ -35,6 +42,15 @@ app.use('/api' , limiter);
 //HTTPS SECURITY HEADERs
 app.use(helmet());
 
+app.use(mongoSanitize());
+
+app.use(xss());
+
+app.use(hpp());
+
+app.use(hpp({
+  whitelist:['duration','ratingsAverage']
+}))
 
 // ROUTES
 const userRouter = require('./routes/userRoutes.js');
